@@ -1,0 +1,6 @@
+.DS_Store
+npm-debug.log
+
+_public
+node_modules
+bower_components
