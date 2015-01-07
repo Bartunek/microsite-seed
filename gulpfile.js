@@ -4,6 +4,8 @@ var gulp = require('gulp'),
     prefix = require('gulp-autoprefixer'),
     changed = require('gulp-changed'),
     connect = require('gulp-connect'),
+    flatten = require('gulp-flatten'),
+    bowerFiles = require('main-bower-files'),
     del = require('del'),
 
     // Chose port for runnig dev server on
@@ -41,6 +43,14 @@ gulp.task('copy:changed', function () {
     .pipe( connect.reload() );
 });
 
+// Copy main files of libs added via Bower to public folder
+// and flatten relative paths
+gulp.task('copy:vendor', ['copy'], function () {
+  return gulp.src( bowerFiles(), { base: 'bower_components'} )
+    .pipe( flatten() )
+    .pipe( gulp.dest( DIST_FOLDER + 'js/vendor/' ) );
+});
+
 // Start server with livereload enabled
 gulp.task('connect', function () {
   connect.server({
@@ -59,17 +69,13 @@ gulp.task('less', function () {
     .pipe( connect.reload() );
 });
 
-// Compile less files
-gulp.task('less:build', ['copy'], function () {
+// Just build and compile everything and don't start the server and watchers
+gulp.task('build', ['copy:vendor'], function () {
+  console.log('Building files...');
   return gulp.src( LESS_MAIN_FILE )
     .pipe( less() )
     .pipe( prefix() )
     .pipe( gulp.dest( DIST_FOLDER + 'css/') );
-});
-
-// Just build and compile everything and don't start the server and watchers
-gulp.task('build', ['less:build'], function () {
-  console.log('Build finished');
 });
 
 // Default entry point, compile, start watchers and dev server
