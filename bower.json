@@ -1,0 +1,21 @@
+{
+  "name": "microsite-seed",
+  "version": "0.1.0",
+  "homepage": "https://github.com/Bartunek/microsite-seed",
+  "authors": [
+    "Jan Bartunek <gsus0187@gmail.com>"
+  ],
+  "description": "Jump start developing microsites, prototypes, or simple static websites with Gulp, static server and LESS integration",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.3"
+  }
+}
