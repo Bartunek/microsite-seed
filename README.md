@@ -9,9 +9,9 @@ Sometimes you need just quickly develop some static site, eg. some proof-of-conc
 - run `npm install`
 - run `gulp`
 - write some code...
-- check your work on `//localhost:4242`
+- check your work in browser on `//localhost:4242`
 - enable [Live Reload](http://livereload.com/) in your browser for speeding up development
 
 ## How it works?
 
-Simply. Gulp script will take care of compilation of your less files, running connect server and serving your files. Connect server will server all files from `_public` folder.
+Simply. Gulp script will take care of compilation of your less files, running connect server and serving your files. Connect server will serve all files from `_public` folder. Also Live Reload server is started on port `35729`.
