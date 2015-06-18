@@ -5,8 +5,6 @@ var gulp =        require('gulp'),
     changed =     require('gulp-changed'),
     connect =     require('gulp-connect'),
     flatten =     require('gulp-flatten'),
-    react =       require('gulp-react'),
-    coffee =      require('gulp-coffee'),
     plumber =     require('gulp-plumber'),
     logger =      require('gulp-logger'),
     bowerFiles =  require('main-bower-files'),
@@ -25,12 +23,8 @@ var gulp =        require('gulp'),
     // to be distributed by dev server
     FILES = [
       'code/**/*.*',
-      '!code/less/**/*',
-      '!code/**/*.coffee',
-      '!code/**/*.jsx'
+      '!code/less/**/*'
     ],
-    FILES_COFFEE =  [ 'code/**/*.coffee'],
-    FILES_JSX =     [ 'code/**/*.jsx' ];
 
     // Name of public folder
     DIST_FOLDER = '_public/';
@@ -80,7 +74,7 @@ gulp.task('connect', function () {
   connect.server({
     root: [ DIST_FOLDER ],
     port: DEV_PORT,
-    livereload: true
+    livereload: false
   });
 });
 
@@ -94,36 +88,8 @@ gulp.task('less', function () {
     .pipe( connect.reload() );
 });
 
-// Transpile CoffeeScript files
-gulp.task('coffee', function () {
-  return gulp.src( FILES_COFFEE )
-    .pipe( plumber( { errorHandler: onError } ) )
-    .pipe( logger({
-      before: 'Compiling CoffeeScript...',
-      after: 'Compiling CoffeeScript finished.',
-      showChange: false,
-      display: 'name'
-    }) )
-    .pipe( coffee( { bare: true } ) )
-    .pipe( gulp.dest( DIST_FOLDER ) );
-});
-
-// Transpile React JSX files
-gulp.task('react', function () {
-  return gulp.src( FILES_JSX )
-    .pipe( plumber( { errorHandler: onError } ) )
-    .pipe( logger({
-      before: 'Compiling JSX files...',
-      after: 'Compiling JSX files finished.',
-      showChange: false,
-      display: 'name'
-    }) )
-    .pipe( react() )
-    .pipe( gulp.dest( DIST_FOLDER ) );
-});
-
 // Just build and compile everything and don't start the server and watchers
-gulp.task('build', ['copy:vendor', 'coffee', 'react'], function () {
+gulp.task('build', ['copy:vendor'], function () {
   console.log('Building files...');
   return gulp.src( LESS_MAIN_FILE )
     .pipe( less() )
@@ -135,7 +101,5 @@ gulp.task('build', ['copy:vendor', 'coffee', 'react'], function () {
 gulp.task('default', ['build', 'connect'], function () {
   gulp.watch( FILES, ['copy:changed'] );
   gulp.watch( FILES_LESS, ['less'] );
-  gulp.watch( FILES_COFFEE, ['coffee'] );
-  gulp.watch( FILES_JSX, ['react'] );
   console.log('Watching files...');
 });
