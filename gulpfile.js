@@ -10,9 +10,10 @@ var gulp =        require('gulp'),
     bowerFiles =  require('main-bower-files'),
     del =         require('del'),
     util =        require('util'),
+    browserSync = require('browser-sync'),
 
     // Chose port for runnig dev server on
-    DEV_PORT = 4242,
+    DEV_PORT = 3000,
 
     // Where are my LESS files and main less file name
     LESS_FOLDER =     'code/less/',
@@ -32,6 +33,12 @@ var gulp =        require('gulp'),
 // Global error handler for "plumber" plugin
 var onError = function( err ) { util.inspect(err);};
 
+// Prepare Browser-sync
+gulp.task('browsersync', function () {
+  browserSync.init({
+    proxy: 'localhost:3000'
+  });
+});
 
 // Clean completely public folder
 gulp.task('clean', function (cb) {
@@ -42,8 +49,7 @@ gulp.task('clean', function (cb) {
 gulp.task('copy', ['clean'], function () {
   return gulp.src( FILES )
     .pipe( plumber( { errorHandler: onError } ) )
-    .pipe( gulp.dest( DIST_FOLDER ) )
-    .pipe( connect.reload() );
+    .pipe( gulp.dest( DIST_FOLDER ) );
 });
 
 // Copy JUST CHANGED files to public folder
@@ -58,7 +64,7 @@ gulp.task('copy:changed', function () {
     }) )
     .pipe( changed( DIST_FOLDER  ) )
     .pipe( gulp.dest( DIST_FOLDER ) )
-    .pipe( connect.reload() );
+    .pipe( browserSync.stream() );
 });
 
 // Copy main files of libs added via Bower to public folder
@@ -85,7 +91,7 @@ gulp.task('less', function () {
     .pipe( less() )
     .pipe( prefix() )
     .pipe( gulp.dest( DIST_FOLDER + 'css/') )
-    .pipe( connect.reload() );
+    .pipe( browserSync.stream() );
 });
 
 // Just build and compile everything and don't start the server and watchers
@@ -94,12 +100,12 @@ gulp.task('build', ['copy:vendor'], function () {
   return gulp.src( LESS_MAIN_FILE )
     .pipe( less() )
     .pipe( prefix() )
-    .pipe( gulp.dest( DIST_FOLDER + 'css/') );
+    .pipe( gulp.dest( DIST_FOLDER + 'css/' ) );
 });
 
 // Default entry point, compile, start watchers and dev server
-gulp.task('default', ['build', 'connect'], function () {
-  gulp.watch( FILES, ['copy:changed'] );
+gulp.task('default', ['build', 'connect', 'browsersync'], function () {
+  gulp.watch( FILES, ['copy:changed'] ).on( 'change', browserSync.reload );
   gulp.watch( FILES_LESS, ['less'] );
   console.log('Watching files...');
 });
