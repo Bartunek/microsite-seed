@@ -1,6 +1,5 @@
 // Import all necessary modules
 var gulp =        require('gulp'),
-    less =        require('gulp-less'),
     stylus =      require('gulp-stylus'),
     prefix =      require('gulp-autoprefixer'),
     changed =     require('gulp-changed'),
@@ -11,31 +10,25 @@ var gulp =        require('gulp'),
     concat =      require('gulp-concat'),
     sourcemaps =  require('gulp-sourcemaps'),
     babel =       require('gulp-babel'),
-    jade =        require('gulp-jade'),
+    jade =        require('gulp-pug'),
     bowerFiles =  require('main-bower-files'),
-    del =         require('del'),
+    rm =          require('gulp-rm'),
     util =        require('util'),
     browserSync = require('browser-sync'),
 
     // Chose port for runnig dev server on
     DEV_PORT = 3000,
 
-    // Where are my LESS files and main less file name
-    LESS_FOLDER =       'code/less/',
-    LESS_FILES =        LESS_FOLDER + '**/*.less',
-    LESS_MAIN_FILE =    LESS_FOLDER + 'main.less',
-
     STYLUS_FOLDER =     'code/styl/',
     STYLUS_FILES =      STYLUS_FOLDER + '**/*.styl',
-    STYLUS_MAIN_FILE =  STYLUS_FOLDER + 'main.stylus.styl',
+    STYLUS_MAIN_FILE =  STYLUS_FOLDER + 'main.styl',
 
     // What to copy to public folder
     // to be distributed by dev server
     FILES = [
       'code/**/*.*',
-      '!code/**/*.jade',
+      '!code/**/*.pug',
       '!code/js/**/*',
-      '!code/less/**/*',
       '!code/styl/**/*'
     ],
 
@@ -43,7 +36,7 @@ var gulp =        require('gulp'),
     JS_FILES = 'code/js/**/*.{js,jsx}',
 
     // Jade Files to be transformed to HTML
-    JADE_FILES = 'code/**/*.jade',
+    JADE_FILES = 'code/**/*.pug',
 
     // Name of public folder
     DIST_FOLDER = '_public/';
@@ -53,7 +46,10 @@ var onError = function( err ) { util.inspect(err);};
 
 // Clean completely public folder
 gulp.task('clean', function (cb) {
-  del( DIST_FOLDER + '*', {force: true}, cb );
+  gulp.src( DIST_FOLDER + '/**/*', { read: false } )
+    .pipe( plumber( { errorHandler: onError } ) )
+    .pipe( rm({ async: false }) );
+  cb();
 });
 
 // Copy ALL files to public folder
@@ -66,7 +62,6 @@ gulp.task('copy', ['clean'], function () {
 // Copy JUST CHANGED files to public folder
 gulp.task('copy:changed', function () {
   return gulp.src( FILES )
-    .pipe( plumber( { errorHandler: onError } ) )
     .pipe( logger({
       before: 'Copying of files started...',
       after: 'Copying of files finished.',
@@ -74,7 +69,8 @@ gulp.task('copy:changed', function () {
       display: 'name'
     }) )
     .pipe( changed( DIST_FOLDER  ) )
-    .pipe( gulp.dest( DIST_FOLDER ) );
+    .pipe( gulp.dest( DIST_FOLDER ) )
+    .pipe( browserSync.stream() );
 });
 
 // Copy main files of libs added via Bower to public folder
@@ -90,7 +86,7 @@ gulp.task('connect', function () {
   connect.server({
     root: [ DIST_FOLDER ],
     port: DEV_PORT,
-    livereload: false
+    livereload: true
   });
 });
 
@@ -122,16 +118,6 @@ gulp.task('stylus', function () {
     .pipe( browserSync.stream() );
 });
 
-// Compile less files
-gulp.task('less', function () {
-  return gulp.src( LESS_MAIN_FILE )
-    .pipe( plumber( { errorHandler: onError } ) )
-    .pipe( less() )
-    .pipe( prefix() )
-    .pipe( gulp.dest( DIST_FOLDER + 'css/') )
-    .pipe( browserSync.stream() );
-});
-
 // Transpile Javascript and JSX files, concat them and save
 gulp.task('babel', function () {
   return gulp.src( JS_FILES )
@@ -143,18 +129,11 @@ gulp.task('babel', function () {
 });
 
 // Just build and compile everything and don't start the server and watchers
-gulp.task('build', ['copy:vendor', 'babel', 'jade', 'stylus'], function () {
-  console.log('Building files...');
-  return gulp.src( LESS_MAIN_FILE )
-    .pipe( less() )
-    .pipe( prefix() )
-    .pipe( gulp.dest( DIST_FOLDER + 'css/' ) );
-});
+gulp.task('build', ['copy:vendor', 'babel', 'jade', 'stylus']);
 
 // Default entry point, compile, start watchers and dev server
 gulp.task('default', ['build', 'connect', 'browsersync'], function () {
   gulp.watch( FILES,        ['copy:changed'] ).on( 'change', browserSync.reload );
-  gulp.watch( LESS_FILES,   ['less'] );
   gulp.watch( STYLUS_FILES, ['stylus'] );
   gulp.watch( JS_FILES,     ['babel'] ).on( 'change', browserSync.reload );
   gulp.watch( JADE_FILES,   ['jade'] ).on( 'change', browserSync.reload );
